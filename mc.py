@@ -1,15 +1,17 @@
+
+#simple Modbus client
 import modbus_tk
 import modbus_tk.defines as cst
 import modbus_tk.modbus_tcp as modbus_tcp
 
 if __name__ == "__main__":
     try:
-        #Connect to the slave
-        master = modbus_tcp.TcpMaster(port=502)
-
-        print master.execute(1, cst.READ_HOLDING_REGISTERS, 100, 6)
-
-        master.execute(1, cst.WRITE_MULTIPLE_REGISTERS, 101, output_value=xrange(12))
+		#Connect to the slave
+		master = modbus_tcp.TcpMaster(host="127.0.0.1", port=502)
+		# read registers
+		print master.execute(1, cst.READ_HOLDING_REGISTERS, 100, 6)
+		# write 0-11 to registers
+		master.execute(1, cst.WRITE_MULTIPLE_REGISTERS, 100, output_value=xrange(12))
 
     except modbus_tk.modbus.ModbusError, e:
         print "Modbus error ", e.get_exception_code()
