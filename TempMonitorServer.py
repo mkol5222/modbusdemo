@@ -18,6 +18,7 @@ from modbus_tk.simulator_rpc_client import SimulatorRpcClient
 from modbus_tk.utils import WorkerThread
 from modbus_tk.defines import *
 from modbus_tk.modbus_tcp import TcpServer
+from modbus_tk.hooks import install_hook
 import time
 
 
@@ -26,7 +27,9 @@ def queryTemperature():
 
     temp = 0
 
-    myoid = "1.3.6.1.4.1.2620.1.6.7.8.1.1.3.2.0"
+    #myoid = "1.3.6.1.4.1.2620.1.6.7.8.1.1.3.2.0" # mb temp
+    myoid = "1.3.6.1.4.1.2620.1.6.7.2.4.0" # cpu usage in perct
+    
     myagent = '10.0.0.208'
     mycommunity = 'vpn123'
 
@@ -85,6 +88,13 @@ class SystemDataCollector:
         except Exception, excpt:
             LOGGER.debug("SystemDataCollector error: %s", str(excpt))
         time.sleep(0.1)
+   
+
+def print_me(args):
+    """hook function example"""
+    (server, request) = args
+    print "print_me: len = ", len(request)
+    return None
         
 if __name__ == "__main__":
     
@@ -100,6 +110,13 @@ if __name__ == "__main__":
     simu = Simulator(TcpServer())
     slave = simu.server.add_slave(1)
     slave.add_block("Temp", ANALOG_INPUTS, 0, 10)
+    
+    install_hook("modbus.Slave.handle_read_discrete_inputs_request", print_me)
+    install_hook("modbus.Slave.handle_read_input_registers_request", print_me)
+    # modbus.Slave.handle_read_coils_request
+    # modbus.Slave.handle_read_discrete_inputs_request
+    # modbus.Slave.handle_read_holding_registers_request
+    # modbus.Slave.handle_read_input_registers_request
     
     try:
         LOGGER.info("'quit' for closing the server")
