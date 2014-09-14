@@ -20,11 +20,10 @@ from modbus_tk.defines import *
 from modbus_tk.modbus_tcp import TcpServer
 from modbus_tk.hooks import install_hook
 import time
+from pysnmp.entity.rfc3413.oneliner import cmdgen
 
 
 def queryTemperature():
-    from pysnmp.entity.rfc3413.oneliner import cmdgen
-
     temp = 0
 
     #myoid = "1.3.6.1.4.1.2620.1.6.7.8.1.1.3.2.0" # mb temp
