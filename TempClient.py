@@ -13,6 +13,7 @@ from PyQt4.QtCore import QTimer
 
 master = modbus_tcp.TcpMaster(host="127.0.0.1", port=502)
 
+
 def collect_data():
 	print "collecting data"
 	coils = master.execute(1, cst.READ_COILS , 100, 10)
