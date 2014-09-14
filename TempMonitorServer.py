@@ -95,6 +95,15 @@ def print_me(args):
     (server, request) = args
     print "print_me: len = ", len(request)
     return None
+    
+def setblock_hook(args):
+    (block, slice, values) = args
+    print block
+    if id(block) == id(switch_block):
+        print "setting switch block"
+    print slice
+    print values
+    return None
         
 if __name__ == "__main__":
     
@@ -111,8 +120,12 @@ if __name__ == "__main__":
     slave = simu.server.add_slave(1)
     slave.add_block("Temp", ANALOG_INPUTS, 0, 10)
     
-    install_hook("modbus.Slave.handle_read_discrete_inputs_request", print_me)
-    install_hook("modbus.Slave.handle_read_input_registers_request", print_me)
+    slave.add_block("switch", modbus_tk.defines.COILS, 100, 10)
+    switch_block = slave._get_block("switch")
+    print "switch block"
+    print switch_block
+    
+    install_hook('modbus.ModbusBlock.setitem', setblock_hook)
     # modbus.Slave.handle_read_coils_request
     # modbus.Slave.handle_read_discrete_inputs_request
     # modbus.Slave.handle_read_holding_registers_request

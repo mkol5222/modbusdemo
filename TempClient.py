@@ -14,6 +14,10 @@ if __name__ == "__main__":
 		#master.execute(1, cst.WRITE_MULTIPLE_REGISTERS, 100, output_value=xrange(12))
 		
 		print master.execute(1, cst.READ_INPUT_REGISTERS , 0, 10)
+		print master.execute(1, cst.WRITE_SINGLE_COIL , 100, output_value=1)
+		print master.execute(1, cst.READ_COILS , 100, 10)
+		print master.execute(1, cst.WRITE_SINGLE_COIL , 101, output_value=1)
+		print master.execute(1, cst.READ_COILS , 100, 10)
 
     except modbus_tk.modbus.ModbusError, e:
         print "Modbus error ", e.get_exception_code()
