@@ -21,6 +21,41 @@ from modbus_tk.modbus_tcp import TcpServer
 import time
 
 
+def queryTemperature():
+    from pysnmp.entity.rfc3413.oneliner import cmdgen
+
+    temp = 0
+
+    myoid = "1.3.6.1.4.1.2620.1.6.7.8.1.1.3.2.0"
+    myagent = '10.0.0.208'
+    mycommunity = 'vpn123'
+
+
+    cmdGen = cmdgen.CommandGenerator()
+
+    errorIndication, errorStatus, errorIndex, varBinds = cmdGen.getCmd(
+        cmdgen.CommunityData(mycommunity),
+        cmdgen.UdpTransportTarget((myagent, 161)),
+        myoid
+    )
+
+    # Check for errors and print out results
+    if errorIndication:
+        print(errorIndication)
+    else:
+        if errorStatus:
+            print('%s at %s' % (
+                errorStatus.prettyPrint(),
+                errorIndex and varBinds[int(errorIndex)-1] or '?'
+                )
+            )
+        else:
+            for name, val in varBinds:
+                print('%s = %s' % (name.prettyPrint(), val.prettyPrint()))
+                temp = int(str(val)) if val else 0
+                
+    return temp
+
 class SystemDataCollector:        
     """The class in charge of getting the CPU load"""
     def __init__(self, refresh_rate_in_sec):
@@ -45,11 +80,16 @@ class SystemDataCollector:
                     
                     #execute a RPC command for changing the value
                     #self._simu.set_values(1, "Cpu", i, (cpu_usage, ))
+                temp = queryTemperature()
+                self._simu.set_values(1, "Temp", 1, (temp, ))
         except Exception, excpt:
             LOGGER.debug("SystemDataCollector error: %s", str(excpt))
         time.sleep(0.1)
         
 if __name__ == "__main__":
+    
+    print "temp is %d" % queryTemperature()
+    
     #create the object for getting CPU data
     data_collector = SystemDataCollector(5) 
     #create the thread in charge of calling the data collector
@@ -59,7 +99,7 @@ if __name__ == "__main__":
     #and one block of analog inputs
     simu = Simulator(TcpServer())
     slave = simu.server.add_slave(1)
-    slave.add_block("Cpu", ANALOG_INPUTS, 0, 10)
+    slave.add_block("Temp", ANALOG_INPUTS, 0, 10)
     
     try:
         LOGGER.info("'quit' for closing the server")
