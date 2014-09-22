@@ -1,17 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
- Modbus TestKit: Implementation of Modbus protocol in python
 
- (C)2009 - Luc Jean - luc.jean@gmail.com
- (C)2009 - Apidev - http://www.apidev.fr
+# SNMP monitoring for
+    
+myagent = '10.0.0.138'
+mycommunity = 'vpn123'
+#myoid = "1.3.6.1.4.1.2620.1.6.7.2.4.0" # cpu usage in perct
+#myoid = "1.3.6.1.4.1.2620.1.6.7.8.1.1.3.2.0" # mb temp
+myoid = ".1.3.6.1.2.1.1.3.0"
 
- This is distributed under GNU LGPL license, see license.txt
-
- This example shows how to create a modbus server in charge of monitoring 
- cpu consumption the machine
-
-"""
 
 from modbus_tk.simulator import *
 from modbus_tk.simulator_rpc_client import SimulatorRpcClient
@@ -26,11 +23,9 @@ from pysnmp.entity.rfc3413.oneliner import cmdgen
 def queryTemperature():
     temp = 0
 
-    #myoid = "1.3.6.1.4.1.2620.1.6.7.8.1.1.3.2.0" # mb temp
-    myoid = "1.3.6.1.4.1.2620.1.6.7.2.4.0" # cpu usage in perct
-    
-    myagent = '10.0.0.208'
-    mycommunity = 'vpn123'
+    global myoid
+    global myagent
+    global mycommunity
 
 
     cmdGen = cmdgen.CommandGenerator()
@@ -71,19 +66,13 @@ class SystemDataCollector:
         try:
             self._count += 1
             if self._count >= self._max_count:
-                self._count = 0
-                #WMI get the load percentage of the machine
-                #from win32com.client import GetObject
-                #wmi = GetObject('winmgmts:')
-                #cpu = wmi.InstancesOf('Win32_Processor')
-                #for (_cpu, i) in zip(cpu, xrange(10)):
-                    #value = _cpu.Properties_('LoadPercentage').Value
-                    #cpu_usage = int(str(value)) if value else 0
-                    
-                    #execute a RPC command for changing the value
-                    #self._simu.set_values(1, "Cpu", i, (cpu_usage, ))
-                temp = queryTemperature()
-                self._simu.set_values(1, "Temp", 1, (temp, ))
+				self._count = 0
+				print "Quering data via SNMP"
+				temp = queryTemperature()
+				# remove when changing OID
+				temp = temp % 100
+				print "Data received via SNMP: %d" % temp
+				self._simu.set_values(1, "Temp", 1, (temp, ))
         except Exception, excpt:
             LOGGER.debug("SystemDataCollector error: %s", str(excpt))
         time.sleep(0.1)
@@ -96,14 +85,16 @@ def print_me(args):
     return None
     
 def setblock_hook(args):
-    (block, slice, values) = args
-    print block
-    if id(block) == id(switch_block):
-        print "setting switch block"
-    print slice
-    print values
-    return None
-        
+	(block, slice, values) = args
+	print "\nEntering setblock_hook"
+	print block
+	if id(block) == id(switch_block):
+		print "setting switch block"
+	print slice
+	print values
+	print "Leaving setblock_hook\n"
+	return None
+		
 if __name__ == "__main__":
     
     print "temp is %d" % queryTemperature()

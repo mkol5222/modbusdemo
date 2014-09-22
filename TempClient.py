@@ -1,4 +1,6 @@
 
+
+
 #simple Modbus client
 import modbus_tk
 import modbus_tk.defines as cst
@@ -18,10 +20,13 @@ def collect_data():
 	print "collecting data"
 	coils = master.execute(1, cst.READ_COILS , 100, 10)
 	reg = master.execute(1, cst.READ_INPUT_REGISTERS , 0, 10)
-	print coils
-	print reg
+	#print coils
+	#print reg
 	global app
-	print app.allWidgets()
+	#print app.allWidgets()
+	print "monitored value %d" % reg[1]
+	global lcd
+	lcd.display(reg[1])
 	return None
 
 class TemperatureCollector:        
@@ -30,10 +35,15 @@ class TemperatureCollector:
         self.master = modbus_tcp.TcpMaster(host="127.0.0.1", port=502)
 		
     def collect(self):
-		print "collecting data"
+		print "collecting data START"
 		coils = self.master.execute(1, cst.READ_COILS , 100, 10)
 		print coils
 		time.sleep(1)
+		reg = master.execute(1, cst.READ_INPUT_REGISTERS , 0, 10)
+		print reg
+		global lcd
+		lcd.display(reg[1])
+		print "collecting data DONE"
 
 def do_modbus():
     try:
@@ -48,7 +58,7 @@ def do_modbus():
 		print master.execute(1, cst.WRITE_SINGLE_COIL , 100, output_value=1)
 		print master.execute(1, cst.READ_COILS , 100, 10)
 		print master.execute(1, cst.WRITE_SINGLE_COIL , 101, output_value=1)
-		print master.execute(1, cst.READ_COILS , 100, 10)
+		print master.execute(1, cst.READ_COILS , 101, 10)
 
     except modbus_tk.modbus.ModbusError, e:
         print "Modbus error ", e.get_exception_code()
@@ -64,13 +74,17 @@ def main():
 	w.move(300, 300)
 	w.setWindowTitle('Simple')
 
+	global lcd
+	lcd = QtGui.QLCDNumber(w)
+	lcd.setGeometry(5, 5, 90, 100)
+	lcd.display(12345)
 	
 	square = QtGui.QFrame(w)
-	square.setGeometry(150, 20, 100, 100)
+	square.setGeometry(150, 70, 100, 100)
 	square.setStyleSheet("QWidget { background-color: %s }" %  "green")
 	
 	lbl = QtGui.QLabel(w)
-	lbl.setText("Hello")
+	lbl.setText("Temperature")
 	lbl.move(10,10)
 	
 	w.show()
